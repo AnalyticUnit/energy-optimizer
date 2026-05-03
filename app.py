@@ -27,9 +27,8 @@ if 'ha' not in st.session_state: st.session_state.ha = (0, 7)
 if 'p_val' not in st.session_state: st.session_state.p_val = 200
 
 def run_energy_app():
-    st.set_page_config(page_title="Energy AI Optimizer", layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(page_title="Energy Optimizer", layout="wide", initial_sidebar_state="expanded")
     
-    # CSS: Сбалансированные отступы
     st.markdown("""
         <style>
         .main .block-container {
@@ -47,11 +46,8 @@ def run_energy_app():
         </style>
     """, unsafe_allow_html=True)
     
-    # --- СИДБАР (Настройки) ---
     with st.sidebar:
         st.header("⚙️ Настройки системы")
-        
-        # ВОССТАНОВЛЕННАЯ ПОЛНАЯ ПОДСКАЗКА
         uploaded_file = st.file_uploader(
             "Загрузить профиль нагрузки", 
             type=["xlsx", "csv"],
@@ -84,21 +80,19 @@ def run_energy_app():
         st.divider()
         limit_val = st.number_input("Лимит мощности (кВт)", 300, 1500, 850, step=50)
         
-        # НОВЫЙ ПАРАМЕТР
         tech_min = st.number_input(
             "Технологический минимум (кВт)", 0, 500, 100, step=10, 
-            help="Уровень нагрузки (освещение, безопасность, ИТ), ниже которого завод не может опускаться даже при разгрузке."
+            help="Уровень нагрузки, ниже которого завод не может опускаться даже при разгрузке."
         )
         
-        with st.expander("💰 Параметры тарифа", expanded=False):
+        with st.expander("💰 Параметры тарифов", expanded=False):
             p_peak = st.number_input("Пик (₽)", 9.5, value=9.5)
             p_half = st.number_input("Полупик (₽)", 6.8, value=6.8)
             p_night = st.number_input("Ночь (₽)", 3.2, value=3.2)
         
         st.divider()
-        is_modeling = st.toggle("🚀 Режим AI-моделирования", value=False)
+        is_modeling = st.toggle("🚀 Изменить график нагрузки", value=False)
 
-    # Расчет базы
     df = df_raw.copy()
     df['hour'] = df['timestamp'].dt.hour
     cond = [(df['hour'] >= 23) | (df['hour'] < 7), 
@@ -107,9 +101,7 @@ def run_energy_app():
     cost_base = (df['load'] * 0.5 * prices_map).sum()
     df['load_opt'] = df['load'].copy()
 
-    # --- ГЛАВНЫЙ ЭКРАН ---
-    st.title("⚡ Energy AI Optimizer (v2 - Smart Limit)")
-    
+    st.title("⚡ Поиск оптимального графика нагрузки")
     m1, m2, m3, m4 = st.columns(4)
     
     if is_modeling:
@@ -117,7 +109,6 @@ def run_energy_app():
         has, hae = st.session_state.ha
         overlap = not (hce <= has or hae <= hcs)
 
-        # ЛОГИКА УМНОГО ЛИМИТА С УЧЕТОМ ТЕХ. МИНИМУМА
         load_in_interval = df.loc[(df['hour'] >= hcs) & (df['hour'] < hce), 'load']
         max_p_allowed = int(load_in_interval.min() - tech_min) if not load_in_interval.empty else 600
         if max_p_allowed < 0: max_p_allowed = 0
@@ -143,7 +134,7 @@ def run_energy_app():
 
         with col_ctrl:
             st.subheader("🎮 Управление моделью")
-            if st.button("🤖 АВТО-ОПТИМИЗАЦИЯ", use_container_width=True, type="primary"):
+            if st.button("🤖 ПОИСК МАКСИМАЛЬНОЙ ЭКОНОМИИ", use_container_width=True, type="primary"):
                 pb = st.progress(0, text="Поиск лучшего решения...")
                 best_s, best_params = -1, {}
                 raw_l, hrs = df['load'].values, df['hour'].values
@@ -157,18 +148,14 @@ def run_energy_app():
                             if hce_t > 24: continue
                             subset_c = raw_l[(hrs >= hcs_t) & (hrs < hce_t)]
                             if subset_c.size == 0: continue
-                            
-                            # Учет тех. минимума в алгоритме
                             current_min_available = subset_c.min() - tech_min
                             if p > current_min_available: continue 
-
                             for has_t in range(24):
                                 for da in range(1, 10):
                                     hae_t = has_t + da
                                     if hae_t > 24 or not (hce_t <= has_t or hae_t <= hcs_t): continue
                                     subset_a = raw_l[(hrs >= has_t) & (hrs < hae_t)]
                                     if subset_a.size == 0: continue
-                                    
                                     temp = raw_l.copy()
                                     temp[(hrs >= hcs_t) & (hrs < hce_t)] -= p
                                     temp[(hrs >= has_t) & (hrs < hae_t)] += (p * dc / da)
@@ -185,13 +172,14 @@ def run_energy_app():
 
             with st.container(border=True):
                 st.write(f"**🔽 Интервал разгрузки** (Запас: {max_p_allowed} кВт)")
-                c1, c2, c3 = st.columns(3)
+                # ЗАДАНЫ ВЕСА КОЛОНОК ДЛЯ КОРРЕКТНОГО ВЫРАВНИВАНИЯ
+                c1, c2, c3 = st.columns([1, 4, 1], gap="small")
                 c1.button("◀️", key="l1", on_click=move_interval, args=("hc", -1))
                 c2.slider("hc_s", 0, 24, value=st.session_state.hc, key="hc", label_visibility="collapsed")
                 c3.button("▶️", key="r1", on_click=move_interval, args=("hc", 1))
                 
                 st.write("**🔼 Интервал догрузки**")
-                c4, c5, c6 = st.columns(3)
+                c4, c5, c6 = st.columns([1, 4, 1], gap="small")
                 c4.button("◀️", key="l2", on_click=move_interval, args=("ha", -1))
                 c5.slider("ha_s", 0, 24, value=st.session_state.ha, key="ha", label_visibility="collapsed")
                 c6.button("▶️", key="r2", on_click=move_interval, args=("ha", 1))
@@ -205,7 +193,6 @@ def run_energy_app():
             if not overlap:
                 fig.add_trace(go.Scatter(x=v['timestamp'], y=v['load_opt'], name="Модель (план)", fill='tozeroy', line=dict(color='#00d4ff', width=3)))
             
-            # ВИЗУАЛИЗАЦИЯ ЛИНИЙ
             fig.add_hline(y=tech_min, line_dash="dot", line_color="orange", annotation_text="ТЕХ. МИНИМУМ")
             fig.add_hline(y=limit_val, line_dash="dash", line_color="#ff4b4b", annotation_text="ЛИМИТ")
             fig.update_layout(template="plotly_dark", height=450, margin=dict(t=20, b=0, l=0, r=0), legend=dict(orientation="h", y=1.1))
@@ -213,7 +200,6 @@ def run_energy_app():
             if overlap: st.warning("Интервалы перекрываются!")
 
     else:
-        # РЕЖИМ ПРОСМОТРА
         m1.metric("Затраты за период", f"{cost_base:,.0f} ₽")
         m4.metric("Пик нагрузки", f"{df['load'].max():,.1f} кВт")
         fig = go.Figure().add_trace(go.Scatter(x=df.head(48)['timestamp'], y=df.head(48)['load'], name="Базовая нагрузка", line=dict(color='#00d4ff', width=3)))
