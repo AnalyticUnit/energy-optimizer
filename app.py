@@ -38,6 +38,11 @@ def run_energy_app():
     
     st.markdown("""
         <style>
+        /* СКРЫТЬ ИКОНКУ GITHUB И МЕНЮ STREAMLIT */
+        #MainMenu {visibility: hidden;}
+        header {visibility: hidden;}
+        footer {visibility: hidden;}
+        
         .main .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-top: -20px; }
         h1 { padding-top: 0px !important; margin-top: -10px !important; margin-bottom: 10px !important; }
         .stMetric {background-color: #1e2129; padding: 15px; border-radius: 10px; border: 1px solid #31333f;}
