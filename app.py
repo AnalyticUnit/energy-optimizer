@@ -38,15 +38,22 @@ def run_energy_app():
     
     st.markdown("""
         <style>
-        /* СКРЫТЬ ИКОНКУ GITHUB И МЕНЮ STREAMLIT */
-        #MainMenu {visibility: hidden;}
-        header {visibility: hidden;}
-        footer {visibility: hidden;}
+        /* Полная очистка системных элементов */
+        #MainMenu {visibility: hidden;} /* Меню три точки */
+        header {visibility: hidden;}    /* Верхняя панель и GitHub */
+        footer {visibility: hidden;}    /* Футер Streamlit */
         
+        /* Скрытие профиля и системных панелей внизу */
+        [data-testid="stStatusWidget"] {display: none;} 
+        [data-testid="stDecoration"] {display: none;}
+        .viewerBadge_container__1QSob {display: none;} /* Кнопка профиля и хостинга */
+        
+        /* Основная верстка */
         .main .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-top: -20px; }
         h1 { padding-top: 0px !important; margin-top: -10px !important; margin-bottom: 10px !important; }
         .stMetric {background-color: #1e2129; padding: 15px; border-radius: 10px; border: 1px solid #31333f;}
         [data-testid="stSidebar"] {background-color: #0e1117;}
+        
         div.stButton > button:first-child[kind="primary"] {
             background-color: #28a745 !important;
             border-color: #28a745 !important;
