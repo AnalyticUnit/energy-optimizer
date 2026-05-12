@@ -131,8 +131,8 @@ def run_energy_app():
         savings = cost_base - cost_opt
         
         m1.metric("Текущие затраты", f"{cost_base:,.0f} ₽")
-        m2.metric("Прогноз после опт.", f"{cost_opt:,.0f} ₽")
-        m3.metric("Экономия", f"{savings:,.0f} ₽", delta=f"{savings/cost_base*100:.1f}%" if not overlap else None)
+        m2.metric("Прогноз затрат", f"{cost_opt:,.0f} ₽")
+        m3.metric("Экономия с учетом прогноза", f"{savings:,.0f} ₽", delta=f"{savings/cost_base*100:.1f}%" if not overlap else None)
         m4.metric("Пиковая нагрузка", f"{df['load_opt'].max():,.1f} кВт")
 
         st.divider()
@@ -185,7 +185,7 @@ def run_energy_app():
         with col_chart:
             fig = go.Figure()
             v = df.head(48)
-            fig.add_trace(go.Scatter(x=v['timestamp'], y=v['load'], name="База", line=dict(color='gray', dash='dot')))
+            fig.add_trace(go.Scatter(x=v['timestamp'], y=v['load'], name="Профиль потребления", line=dict(color='gray', dash='dot')))
             if not overlap: 
                 fig.add_trace(go.Scatter(x=v['timestamp'], y=v['load_opt'], name="Модель", fill='tozeroy', line=dict(color='#00d4ff')))
             fig.add_hline(y=limit_val, line_dash="dash", line_color="red", annotation_text="ЛИМИТ")
@@ -201,8 +201,8 @@ def run_energy_app():
             if not load_in_interval.empty and load_in_interval.min() - st.session_state.p_val < tech_min:
                 st.warning("⚠️ Нагрузка опускается ниже технологического минимума!")
     else:
-        m1.metric("Затраты", f"{cost_base:,.0f} ₽")
-        m4.metric("Пик", f"{df['load'].max():,.1f} кВт")
+        m1.metric("Текущие затраты", f"{cost_base:,.0f} ₽")
+        m4.metric("Пиковая нагрузка", f"{df['load'].max():,.1f} кВт")
         fig = go.Figure(go.Scatter(x=df.head(48)['timestamp'], y=df.head(48)['load'], name="Факт", line=dict(color='#00d4ff')))
         fig.add_hline(y=limit_val, line_dash="dash", line_color="red", annotation_text="ЛИМИТ")
         fig.add_hline(y=tech_min, line_dash="dash", line_color="orange", annotation_text="ТЕХ. МИН")
