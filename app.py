@@ -38,31 +38,10 @@ def run_energy_app():
     
     st.markdown("""
         <style>
-        /* 1. Скрываем верхнюю панель и GitHub */
-        header[data-testid="stHeader"] {visibility: hidden; height: 0%;}
-        
-        /* 2. Скрываем футер и все подписи внизу */
-        footer {visibility: hidden;}
-        
-        /* 3. Удаляем кнопку профиля, управления и 'Streamlit' badge (агрессивно) */
-        [data-testid="stStatusWidget"], 
-        [data-testid="stDecoration"], 
-        .stDeployButton,
-        [data-testid="stAppDeploy"],
-        div[class*="viewerBadge"],
-        div[class*="StyledExternalLink"] {
-            display: none !important;
-        }
-
-        /* 4. Скрытие любых всплывающих меню снизу (Shadow DOM/Overlays) */
-        iframe[title="Managed by Streamlit"] {display: none !important;}
-        
-        /* Основная верстка приложения (сохраняем КОД2) */
-        .main .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-top: -30px; }
+        .main .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-top: -20px; }
         h1 { padding-top: 0px !important; margin-top: -10px !important; margin-bottom: 10px !important; }
         .stMetric {background-color: #1e2129; padding: 15px; border-radius: 10px; border: 1px solid #31333f;}
         [data-testid="stSidebar"] {background-color: #0e1117;}
-        
         div.stButton > button:first-child[kind="primary"] {
             background-color: #28a745 !important;
             border-color: #28a745 !important;
